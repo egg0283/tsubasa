@@ -1,0 +1,89 @@
+pip install pygame
+import pygame
+import random
+
+# 初期化
+pygame.init()
+
+# 画面サイズ
+WIDTH, HEIGHT = 480, 640
+screen = pygame.display.set_mode((WIDTH, HEIGHT))
+pygame.display.set_caption("よけゲーム")
+
+# 色の定義
+WHITE = (255, 255, 255)
+BLACK = (0, 0, 0)
+RED = (255, 0, 0)
+
+# プレイヤー設定
+player_size = 50
+player_x = WIDTH // 2 - player_size // 2
+player_y = HEIGHT - player_size - 10
+player_speed = 5
+
+# 障害物設定
+obstacle_size = 50
+obstacle_speed = 5
+obstacle_x = random.randint(0, WIDTH - obstacle_size)
+obstacle_y = -obstacle_size
+
+# フォント
+font = pygame.font.SysFont(None, 36)
+
+# スコア
+score = 0
+
+# ゲームループ
+running = True
+clock = pygame.time.Clock()
+
+while running:
+    clock.tick(60)  # 60FPS
+    screen.fill(WHITE)
+
+    # イベント処理
+    for event in pygame.event.get():
+        if event.type == pygame.QUIT:
+            running = False
+
+    # キー入力取得
+    keys = pygame.key.get_pressed()
+    if keys[pygame.K_LEFT] and player_x > 0:
+        player_x -= player_speed
+    if keys[pygame.K_RIGHT] and player_x < WIDTH - player_size:
+        player_x += player_speed
+
+    # 障害物の移動
+    obstacle_y += obstacle_speed
+    if obstacle_y > HEIGHT:
+        obstacle_y = -obstacle_size
+        obstacle_x = random.randint(0, WIDTH - obstacle_size)
+        score += 1
+        # 難易度アップ
+        if score % 5 == 0:
+            obstacle_speed += 1
+
+    # プレイヤーと障害物の当たり判定
+    player_rect = pygame.Rect(player_x, player_y, player_size, player_size)
+    obstacle_rect = pygame.Rect(obstacle_x, obstacle_y, obstacle_size, obstacle_size)
+
+    if player_rect.colliderect(obstacle_rect):
+        # ゲームオーバー
+        text = font.render("ゲームオーバー！スコア: " + str(score), True, RED)
+        screen.blit(text, (30, HEIGHT // 2 - 20))
+        pygame.display.flip()
+        pygame.time.wait(3000)
+        running = False
+        continue
+
+    # 描画
+    pygame.draw.rect(screen, BLACK, player_rect)
+    pygame.draw.rect(screen, RED, obstacle_rect)
+
+    # スコア表示
+    score_text = font.render("スコア: " + str(score), True, BLACK)
+    screen.blit(score_text, (10, 10))
+
+    pygame.display.flip()
+
+pygame.quit()
